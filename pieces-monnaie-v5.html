@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mes pièces – inventaire, annonces et valeurs</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2328;--mut:#6b7280;--line:#e5e1d8;--acc:#8a6a1f;--acc2:#b8892b;--ok:#1b7f4b;--warn:#b45309;--bad:#b91c1c;--inp:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#16150f;--card:#201f17;--ink:#ece9df;--mut:#a39f8f;--line:#38362a;--acc:#d9b25a;--acc2:#e6c677;--inp:#2a281d;--ok:#4ade80;--warn:#fbbf24;--bad:#f87171}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:16px 20px;border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5}
+h1{font-size:20px;margin:0 0 10px}
+h2{font-size:16px;margin:0 0 8px}
+.wrap{max-width:1200px;margin:0 auto;padding:16px 20px 60px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grow{flex:1}
+button,.btn{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px;border-radius:8px}
+button:hover{border-color:var(--acc2)}
+button.pri{background:var(--acc);color:#fff;border-color:var(--acc)}
+button.sm{padding:4px 9px;font-size:13px}
+button.danger{color:var(--bad)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--inp);border:1px solid var(--line);border-radius:8px;padding:7px 9px;width:100%}
+textarea{resize:vertical}
+label{display:block;font-size:13px;color:var(--mut);margin-bottom:3px}
+.f{flex:1 1 170px;min-width:140px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat b{display:block;font-size:19px}
+.stat span{color:var(--mut);font-size:12px}
+.spots{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:12px 0}
+.spots .f{max-width:200px}
+.note{color:var(--mut);font-size:12.5px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.thumb{aspect-ratio:4/3;background:#0001;display:flex;align-items:center;justify-content:center;color:var(--mut);position:relative;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.badge{position:absolute;top:8px;left:8px;font-size:11.5px;padding:2px 8px;border-radius:99px;background:#000a;color:#fff}
+.nph{position:absolute;top:8px;right:8px;font-size:11.5px;padding:2px 8px;border-radius:99px;background:#000a;color:#fff}
+.cb{padding:10px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.cb .t{font-weight:600}
+.cb .m{color:var(--mut);font-size:13px}
+.price{color:var(--acc);font-weight:600}
+.acts{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 12px}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:0;width:min(860px,96vw);max-height:94vh}
+dialog::backdrop{background:#0008}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card);z-index:2}
+.db{padding:14px 16px;overflow:auto}
+.df{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--card)}
+.photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.ph{position:relative;width:96px;height:96px;border-radius:8px;overflow:hidden;border:2px solid var(--line)}
+.ph.main{border-color:var(--acc2)}
+.ph img{width:100%;height:100%;object-fit:cover}
+.ph button{position:absolute;padding:0 6px;font-size:12px;line-height:20px}
+.ph .x{top:3px;right:3px}
+.ph .s{bottom:3px;left:3px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.box{background:var(--inp);border:1px solid var(--line);border-radius:10px;padding:10px 12px;white-space:pre-wrap;font-size:14px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+.chk{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0}
+.chk label{display:flex;gap:6px;align-items:center;color:var(--ink);font-size:14px;margin:0}
+.chk input{width:auto}
+.empty{text-align:center;color:var(--mut);padding:50px 10px}
+.links a{display:inline-block;margin:4px 8px 4px 0;padding:5px 10px;border:1px solid var(--line);border-radius:8px;color:var(--acc);text-decoration:none;font-size:14px}
+.warn{color:var(--warn);font-size:13px}
+.dup-badge{position:absolute;bottom:8px;left:8px;font-size:11.5px;padding:2px 8px;border-radius:99px;background:var(--warn);color:#fff;font-weight:600;box-shadow:0 1px 4px #0004}
+.dup-alert{background:rgba(180,83,9,.12);border:1px solid var(--warn);color:var(--ink);border-radius:10px;padding:9px 12px;font-size:13.5px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.dup-alert b{color:var(--warn)}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:10px}
+.bar div{height:100%;width:0;background:var(--acc);transition:width .3s}
+.tag{font-size:11px;font-weight:400;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:0 7px;margin-left:4px}
+.mkt{background:var(--inp);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:14px}
+.mkt p{margin:6px 0}
+#rLog{max-height:230px;overflow:auto;font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🪙 Mes pièces à vendre</h1>
+  <div class="row">
+    <button class="pri" id="btnAdd">+ Ajouter une pièce</button>
+    <input id="q" placeholder="Rechercher (nom, pays, année…)" style="max-width:260px">
+    <select id="fStatut" style="max-width:190px"><option value="">Tous les statuts</option></select>
+    <label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--ink);font-size:14px;cursor:pointer;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card)"><input type="checkbox" id="fDup" style="width:auto"> ⚠️ Doublons (<span id="dupCount">0</span>)</label>
+    <div class="grow"></div>
+    <button id="btnRefresh" class="pri">🔄 Actualiser les prix</button>
+    <button id="btnSet">⚙ Réglages des annonces</button>
+    <button id="btnCsv">Export CSV</button>
+    <button id="btnJson">Sauvegarde (JSON)</button>
+    <button id="btnImp">Restaurer</button>
+    <input type="file" id="impFile" accept=".json" hidden>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="spots">
+    <div class="row">
+      <div class="f"><label>Cours de l'or (€ / gramme fin)</label><input type="number" step="0.01" id="spotOr"></div>
+      <div class="f"><label>Cours de l'argent (€ / gramme fin)</label><input type="number" step="0.01" id="spotAg"></div>
+      <div class="note" style="flex:3 1 260px">Valeurs de départ indicatives (relevés de l'été 2026 : environ 112 €/g pour l'or, 1,65 €/g pour l'argent). <b>Mets-les à jour</b> avant de fixer tes prix : <a href="https://or.fr/cours" target="_blank" rel="noopener">or.fr/cours</a> · <a href="https://www.veracash.com/fr/cours-argent" target="_blank" rel="noopener">veracash.com</a>.</div>
+    </div>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div id="list"></div>
+</div>
+
+<!-- Fiche pièce -->
+<dialog id="dEdit">
+  <div class="dh"><h2 id="eTitle">Nouvelle pièce</h2><button id="eClose">✕</button></div>
+  <div class="db">
+    <div id="dupWarn" class="dup-alert" hidden></div>
+    <div class="row">
+      <div class="f" style="flex-basis:100%"><label>Type de pièce (pré-remplit métal, poids, titre et estimation)</label><select id="fType"></select></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div class="f" style="flex:2 1 260px"><label>Désignation *</label><input id="fNom" placeholder="Ex. 20 francs or Coq de Chaplain"></div>
+      <div class="f"><label>Pays</label><input id="fPays"></div>
+      <div class="f" style="max-width:110px"><label>Année</label><input id="fAnnee" placeholder="1907"></div>
+      <div class="f" style="max-width:110px"><label>Quantité</label><input type="number" min="1" id="fQte" value="1"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div class="f"><label>État</label><select id="fEtat"></select></div>
+      <div class="f"><label>Atelier / variante / tranche</label><input id="fVar" placeholder="Ex. Paris (A), tranche en creux"></div>
+      <div class="f"><label>Référence catalogue</label><input id="fRef" placeholder="Gadoury 1064, KM 847, Numista…"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div class="f"><label>Métal</label><select id="fMetal"><option value="or">Or</option><option value="argent">Argent</option><option value="base">Métal commun (cuivre, nickel, laiton…)</option></select></div>
+      <div class="f"><label>Poids (g)</label><input type="number" step="0.001" id="fPoids"></div>
+      <div class="f"><label>Titre (‰)</label><input type="number" step="0.1" id="fTitre"></div>
+      <div class="f"><label>Diamètre (mm)</label><input type="number" step="0.1" id="fDiam"></div>
+      <div class="f"><label>Profil d'estimation</label><select id="fCat"></select></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div class="f" style="flex:2 1 260px"><label>Défauts / remarques (rayures, patine, coup sur la tranche…)</label><input id="fRem"></div>
+      <div class="f"><label>Statut</label><select id="fStatut2"></select></div>
+      <div class="f"><label>Plateforme</label><input id="fPlat" placeholder="eBay, Leboncoin, Delcampe…"></div>
+      <div class="f" style="max-width:150px"><label>Prix demandé (€/pièce)</label><input type="number" step="0.01" id="fPrix"></div>
+    </div>
+    <div style="margin-top:12px">
+      <label>Photos (la première est la photo principale) — recto, verso, tranche, détails</label>
+      <div class="row"><button type="button" id="btnPhoto">📷 Ajouter des photos</button><input type="file" id="fPhotos" accept="image/*" multiple hidden><span class="note">Redimensionnées automatiquement pour rester légères.</span></div>
+      <div class="row" style="margin-top:8px"><button type="button" id="btnAI" class="pri">🔍 Reconnaître la pièce (IA)</button><label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--ink)"><input type="checkbox" id="autoAI" style="width:auto"> Analyser automatiquement à l'ajout des photos</label></div>
+      <div id="aiOut" class="box" hidden style="margin-top:8px"></div>
+      <div class="photos" id="phList"></div>
+    </div>
+  </div>
+  <div class="df"><button id="eCancel">Annuler</button><button class="pri" id="eSave">Enregistrer</button></div>
+</dialog>
+
+<!-- Actualisation globale des prix -->
+<dialog id="dRef">
+  <div class="dh"><h2>Actualiser les prix selon le marché</h2><button id="rClose">✕</button></div>
+  <div class="db">
+    <p class="note">Pour chaque type de pièce, l'appli demande à Gemini de chercher sur le web (eBay, Leboncoin, Delcampe, Numista…) des annonces et ventes comparables, calcule une médiane, puis met à jour le prix de toutes les fiches concernées. Les pièces identiques (même nom, pays, année, variante et état) ne sont estimées qu'une seule fois.</p>
+    <div class="chk"><label><input type="checkbox" id="rV" checked> Pièces « À vendre »</label><label><input type="checkbox" id="rA" checked> Pièces « Annonce publiée »</label></div>
+    <div class="row">
+      <div class="f"><label>Positionnement du prix d'annonce</label><select id="rPos">
+        <option value="-10">Vente rapide (10 % sous la médiane)</option>
+        <option value="-5">Légèrement sous le marché (−5 %)</option>
+        <option value="0">Prix du marché (médiane)</option>
+        <option value="10">Haut de fourchette (+10 %)</option></select></div>
+      <div class="f"><label>Ignorer les pièces déjà estimées depuis moins de</label><select id="rDays">
+        <option value="0">Ne rien ignorer</option><option value="1">1 jour</option><option value="7" selected>7 jours</option><option value="30">30 jours</option></select></div>
+    </div>
+    <div class="chk"><label><input type="checkbox" id="rForce"> Écraser aussi les prix que j'ai saisis à la main sur les fiches (définitif)</label></div>
+    <div class="bar"><div id="rBar"></div></div>
+    <pre id="rLog" class="box"></pre>
+    <p class="note">Chaque pièce distincte utilise une requête avec recherche Google : le quota gratuit de Gemini est limité, l'actualisation avance donc lentement et se met en pause si besoin. Les résultats viennent des pages que Google retrouve, pas d'un accès direct aux plateformes : vérifie les pièces de valeur avec les liens de l'onglet « Valeur ».</p>
+  </div>
+  <div class="df"><button id="rStop" hidden>Arrêter</button><button class="pri" id="rGo">Lancer l'actualisation</button></div>
+</dialog>
+
+<!-- Annonce / valeurs -->
+<dialog id="dAd">
+  <div class="dh"><h2 id="aTitle">Annonce</h2><button id="aClose">✕</button></div>
+  <div class="db">
+    <div class="tabs">
+      <button data-tab="ad" class="on">Texte d'annonce</button>
+      <button data-tab="val">Valeur & prix du marché</button>
+      <button data-tab="ph">Photos</button>
+    </div>
+    <div id="tabAd">
+      <div class="row">
+        <div class="f"><label>Plateforme</label><select id="aPlat">
+          <option value="lbc">Leboncoin</option><option value="ebay">eBay</option><option value="delcampe">Delcampe</option><option value="fb">Facebook Marketplace</option><option value="gen">Générique</option></select></div>
+        <div class="f"><label>Longueur</label><select id="aLen"><option value="std">Standard</option><option value="short">Courte</option></select></div>
+        <div class="f" style="max-width:170px"><label>Prix affiché (€)</label><input type="number" step="0.01" id="aPrix"></div>
+      </div>
+      <div class="chk">
+        <label><input type="checkbox" id="oClean"> Pièce non nettoyée</label>
+        <label><input type="checkbox" id="oAuth"> Authenticité garantie</label>
+        <label><input type="checkbox" id="oOffer"> J'étudie les offres raisonnables</label>
+        <label><input type="checkbox" id="oLot"> Lot possible (remise)</label>
+      </div>
+      <label>Titre <span class="note" id="tLen"></span></label>
+      <div class="row"><input id="aT" class="grow"><button class="sm" data-copy="aT">Copier</button></div>
+      <label style="margin-top:10px">Description</label>
+      <textarea id="aD" rows="16"></textarea>
+      <div class="row" style="margin-top:8px"><button class="pri" id="cpAll">Copier titre + description</button><button id="cpDesc">Copier la description</button><span id="cpOk" class="note"></span></div>
+    </div>
+    <div id="tabVal" hidden></div>
+    <div id="tabPh" hidden></div>
+  </div>
+</dialog>
+
+<!-- Réglages -->
+<dialog id="dSet">
+  <div class="dh"><h2>Réglages des annonces</h2><button id="sClose">✕</button></div>
+  <div class="db">
+    <label>Livraison / remise (ajouté à chaque annonce)</label>
+    <textarea id="sLiv" rows="3"></textarea>
+    <label style="margin-top:10px">Signature / mentions de fin</label>
+    <textarea id="sSig" rows="3" placeholder="Ex. N'hésitez pas à me poser vos questions. Merci de votre visite !"></textarea>
+    <label style="margin-top:14px">Clé API Google Gemini – 100 % gratuite (reconnaissance des pièces par photo)</label>
+    <input type="password" id="sKey" placeholder="AIzaSy…" autocomplete="off">
+    <p class="note">Obtiens une clé <b>gratuite sans carte bancaire</b> sur <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (compte Google requis). Le quota gratuit permet largement de scanner des dizaines de pièces chaque jour. La clé reste uniquement dans ce navigateur et n'est jamais incluse dans les sauvegardes.</p>
+    <label style="margin-top:10px">Modèle Gemini (gratuit)</label>
+    <select id="sModel">
+      <option value="gemini-3.8-flash">Gemini 3.8 Flash (recommandé – le plus précis en numismatique)</option>
+      <option value="gemini-3.6-flash">Gemini 3.6 Flash (alternatif rapide)</option>
+      <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (quota journalier très élevé)</option>
+      <option value="gemini-2.5-flash">Gemini 2.5 Flash (compatibilité anciens comptes)</option>
+    </select>
+    <p class="note">Enregistré dans ce navigateur.</p>
+  </div>
+  <div class="df"><button class="pri" id="sSave">Enregistrer</button></div>
+</dialog>
+
+<script>
+/* ============ Données de référence ============ */
+const GRADES={B:'Beau',TB:'Très beau',TTB:'Très très beau',SUP:'Superbe',SPL:'Splendide',FDC:'Fleur de coin'};
+const GORDER=['B','TB','TTB','SUP','SPL','FDC'];
+const STATUTS={a_vendre:'À vendre',annonce:'Annonce publiée',vendu:'Vendu',garde:'À garder'};
+const CATS={
+  or_courant:'Or – pièce courante (prime faible à modérée)',
+  or_invest:'Or – pièce d’investissement (prime très faible)',
+  argent_courant:'Argent – pièce ancienne 5 F, dollars… (prime modérée)',
+  argent_petit:'Argent – petites divisionnaires / Turin (prime plus forte)',
+  argent_commemo:'Argent – années 1960-80 / commémoratives (prime faible)',
+  argent_invest:'Argent – once d’investissement',
+  argent_ancien:'Argent – monnaie ancienne XVIIIe-XIXe (thalers, couronnes… prime plus forte)',
+  base:'Métal commun (valeur fixe en euros)'
+};
+/* multiplicateurs [min,max] appliqués à la valeur du métal fin, par état B,TB,TTB,SUP,SPL,FDC */
+const MULT={
+  or_courant:[[1,1.04],[1,1.05],[1.02,1.08],[1.05,1.15],[1.10,1.25],[1.2,1.5]],
+  or_invest:[[1.01,1.05],[1.01,1.05],[1.01,1.05],[1.01,1.05],[1.01,1.06],[1.02,1.07]],
+  argent_courant:[[.95,1.15],[1,1.3],[1.1,1.5],[1.3,1.9],[1.5,2.3],[2,3.5]],
+  argent_petit:[[1,1.5],[1.1,1.8],[1.3,2.2],[1.6,3],[2,4],[3,6]],
+  argent_commemo:[[.95,1.1],[1,1.15],[1,1.2],[1.05,1.25],[1.1,1.3],[1.15,1.4]],
+  argent_invest:[[1.05,1.3],[1.05,1.3],[1.05,1.3],[1.05,1.3],[1.05,1.3],[1.05,1.35]],
+  argent_ancien:[[.95,1.3],[1,1.6],[1.2,2.2],[1.5,3],[2,4.5],[3,7]]
+};
+const BASE_EUR=[[.05,.3],[.1,.5],[.2,1],[.5,2],[1,4],[2,8]];
+const CAT=[
+ {id:'fr-20f-or',nom:'20 francs or (Napoléon III, Coq, Génie, Marianne)',pays:'France',metal:'or',poids:6.4516,titre:900,diam:21,cat:'or_courant'},
+ {id:'fr-10f-or',nom:'10 francs or (Napoléon III, Coq, Génie)',pays:'France',metal:'or',poids:3.2258,titre:900,diam:19,cat:'or_courant'},
+ {id:'fr-5f-or',nom:'5 francs or',pays:'France',metal:'or',poids:1.6129,titre:900,diam:17,cat:'or_courant'},
+ {id:'fr-40f-or',nom:'40 francs or (Napoléon)',pays:'France',metal:'or',poids:12.9032,titre:900,diam:26,cat:'or_courant'},
+ {id:'fr-50f-or',nom:'50 francs or (Napoléon III)',pays:'France',metal:'or',poids:16.129,titre:900,diam:28,cat:'or_courant'},
+ {id:'fr-100f-or',nom:'100 francs or (Napoléon III)',pays:'France',metal:'or',poids:32.258,titre:900,diam:35,cat:'or_courant'},
+ {id:'ch-20f-or',nom:'20 francs or Vreneli',pays:'Suisse',metal:'or',poids:6.4516,titre:900,diam:21,cat:'or_courant'},
+ {id:'it-20l-or',nom:'20 lires or',pays:'Italie',metal:'or',poids:6.4516,titre:900,diam:21,cat:'or_courant'},
+ {id:'de-20m-or',nom:'20 marks or',pays:'Allemagne',metal:'or',poids:7.965,titre:900,diam:22.5,cat:'or_courant'},
+ {id:'gb-sov',nom:'Souverain or',pays:'Royaume-Uni',metal:'or',poids:7.98805,titre:916.7,diam:22,cat:'or_courant'},
+ {id:'mx-50p',nom:'50 pesos or Centenario',pays:'Mexique',metal:'or',poids:41.6667,titre:900,diam:37,cat:'or_courant'},
+ {id:'za-kr',nom:'Krugerrand 1 once or',pays:'Afrique du Sud',metal:'or',poids:33.93,titre:916.7,diam:32.8,cat:'or_invest'},
+ {id:'ca-maple',nom:'Maple Leaf 1 once or',pays:'Canada',metal:'or',poids:31.1035,titre:999.9,diam:30,cat:'or_invest'},
+ {id:'fr-5f-arg',nom:'5 francs argent (Louis-Philippe, Napoléon III, Hercule, Union latine)',pays:'France',metal:'argent',poids:25,titre:900,diam:37,cat:'argent_courant'},
+ {id:'fr-5f-semeuse',nom:'5 francs Semeuse argent (1960-1969)',pays:'France',metal:'argent',poids:12,titre:835,diam:29,cat:'argent_petit'},
+ {id:'fr-10f-hercule',nom:'10 francs Hercule argent (1965-1973)',pays:'France',metal:'argent',poids:25,titre:900,diam:37,cat:'argent_commemo'},
+ {id:'fr-50f-hercule',nom:'50 francs Hercule argent (1974-1980)',pays:'France',metal:'argent',poids:30,titre:900,diam:41,cat:'argent_commemo'},
+ {id:'fr-100f-arg',nom:'100 francs argent (commémorative 1982-1999)',pays:'France',metal:'argent',poids:15,titre:900,diam:null,cat:'argent_commemo'},
+ {id:'fr-20f-turin',nom:'20 francs Turin argent (1933-1939)',pays:'France',metal:'argent',poids:20,titre:680,diam:35,cat:'argent_petit'},
+ {id:'fr-10f-turin',nom:'10 francs Turin argent (1929-1939)',pays:'France',metal:'argent',poids:10,titre:680,diam:28,cat:'argent_petit'},
+ {id:'fr-2f-arg',nom:'2 francs argent (Semeuse, Cérès…)',pays:'France',metal:'argent',poids:10,titre:835,diam:27,cat:'argent_petit'},
+ {id:'fr-1f-arg',nom:'1 franc argent (Semeuse, Cérès, Napoléon III…)',pays:'France',metal:'argent',poids:5,titre:835,diam:23,cat:'argent_petit'},
+ {id:'fr-50c-arg',nom:'50 centimes argent (Semeuse, Cérès…)',pays:'France',metal:'argent',poids:2.5,titre:835,diam:18,cat:'argent_petit'},
+ {id:'us-morgan',nom:'Morgan Dollar argent',pays:'États-Unis',metal:'argent',poids:26.73,titre:900,diam:38.1,cat:'argent_courant'},
+ {id:'us-peace',nom:'Peace Dollar argent',pays:'États-Unis',metal:'argent',poids:26.73,titre:900,diam:38.1,cat:'argent_courant'},
+ {id:'ch-5f-berger',nom:'5 francs suisses Berger argent',pays:'Suisse',metal:'argent',poids:15,titre:835,diam:31,cat:'argent_petit'},
+ {id:'us-eagle',nom:'American Silver Eagle 1 once',pays:'États-Unis',metal:'argent',poids:31.1035,titre:999,diam:40.6,cat:'argent_invest'},
+ {id:'at-thaler-mt',nom:'Thaler Marie-Thérèse argent (1780)',pays:'Autriche',metal:'argent',poids:28.0668,titre:833,diam:40,cat:'argent_ancien'},
+ {id:'base',nom:'Pièce courante (bronze, cupronickel, laiton…)',pays:'',metal:'base',poids:null,titre:null,diam:null,cat:'base'},
+ {id:'custom',nom:'Autre pièce (je renseigne moi-même)',pays:'',metal:'argent',poids:null,titre:null,diam:null,cat:'argent_courant'}
+];
+
+/* ============ Stockage (IndexedDB) ============ */
+const DB={db:null,mem:new Map(),
+ async open(){try{await new Promise((res,rej)=>{const r=indexedDB.open('pieces-monnaie-db',1);r.onupgradeneeded=()=>r.result.createObjectStore('coins',{keyPath:'id'});r.onsuccess=()=>{this.db=r.result;res()};r.onerror=()=>rej(r.error)})}catch(e){this.db=null}},
+ tx(m){return this.db.transaction('coins',m).objectStore('coins')},
+ all(){return this.db?new Promise((res,rej)=>{const r=this.tx('readonly').getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}):Promise.resolve([...this.mem.values()])},
+ put(c){if(!this.db){this.mem.set(c.id,c);return Promise.resolve()}return new Promise((res,rej)=>{const r=this.tx('readwrite').put(c);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})},
+ del(id){if(!this.db){this.mem.delete(id);return Promise.resolve()}return new Promise((res,rej)=>{const r=this.tx('readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
+};
+
+/* ============ Utilitaires ============ */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const nf=(n,d=2)=>new Intl.NumberFormat('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:d}).format(n);
+const eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:n<20?2:0}).format(n);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let coins=[],cur=null,adCoin=null;
+let spots=ls.get('spots',{or:112,argent:1.65});
+let reglages=ls.get('reglages',{liv:'Envoi soigné et suivi (lettre suivie ou Colissimo) sous étui de protection, ou remise en main propre.',sig:'Merci de votre visite, n\'hésitez pas à me poser vos questions !'});
+
+const rnd=v=>v<20?Math.round(v*2)/2:Math.round(v);
+function fineW(c){return c.metal==='base'||!c.poids||!c.titre?0:c.poids*c.titre/1000}
+function metalVal(c){const f=fineW(c);return c.metal==='or'?f*spots.or:c.metal==='argent'?f*spots.argent:0}
+function estimate(c){ /* par pièce */
+  const gi=Math.max(0,GORDER.indexOf(c.etat||'TB'));
+  if(c.metal==='base'||c.cat==='base'||!fineW(c)){const b=BASE_EUR[gi];return{metal:0,min:b[0],max:b[1],mid:(b[0]+b[1])/2}}
+  const m=metalVal(c),mu=(MULT[c.cat]||MULT.argent_courant)[gi];
+  return{metal:m,min:m*mu[0],max:m*mu[1],mid:m*(mu[0]+mu[1])/2}
+}
+/* priceOf : voir bloc « Prix du marché » */
+function typeOf(c){return CAT.find(t=>t.id===c.type)}
+function metalLabel(c){
+  const f=fineW(c);
+  if(c.metal==='or')return c.poids&&c.titre?`Or ${nf(c.titre,1)}‰ – ${nf(c.poids,3)} g (${nf(f,2)} g d'or fin)`:'Or';
+  if(c.metal==='argent')return c.poids&&c.titre?`Argent ${nf(c.titre,1)}‰ – ${nf(c.poids,3)} g (${nf(f,2)} g d'argent fin)`:'Argent';
+  return 'Métal commun'+(c.poids?` – ${nf(c.poids,2)} g`:'');
+}
+function metalShort(c){return c.metal==='or'?'OR':c.metal==='argent'?'ARGENT':''}
+function searchQuery(c){return [c.nom.replace(/\(.*?\)/g,'').trim(),c.annee].filter(Boolean).join(' ')}
+
+/* ============ Photos ============ */
+function fileToDataURL(file,max=1200,q=.85){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{let w=img.width,h=img.height;const s=Math.min(1,max/Math.max(w,h));w=Math.round(w*s);h=Math.round(h*s);const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(url);res(cv.toDataURL('image/jpeg',q))};img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('image'))};img.src=url})}
+function dl(href,name){const a=document.createElement('a');a.href=href;a.download=name;document.body.appendChild(a);a.click();a.remove()}
+function renderPhotos(){
+  $('#phList').innerHTML=cur.photos.map((p,i)=>`<div class="ph ${i===0?'main':''}"><img src="${p}" alt=""><button class="x sm" data-del="${i}" title="Supprimer">✕</button>${i?`<button class="s sm" data-main="${i}" title="Photo principale">★</button>`:''}</div>`).join('')||'<span class="note">Aucune photo pour l\'instant.</span>';
+}
+
+/* ============ Détection des doublons ============ */
+function normStr(s){
+  return String(s??'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+}
+function coinSig(c){
+  const nom=normStr(c.nom);
+  if(!nom)return '';
+  const pays=normStr(c.pays);
+  const annee=normStr(c.annee);
+  const vari=normStr(c.var);
+  return [nom,pays,annee,vari].join('|');
+}
+function getDupGroups(){
+  const map=new Map();
+  for(const c of coins){
+    const sig=coinSig(c);
+    if(!sig)continue;
+    if(!map.has(sig))map.set(sig,[]);
+    map.get(sig).push(c);
+  }
+  return map;
+}
+function checkLiveDuplicate(){
+  const box=$('#dupWarn');
+  if(!box||!cur)return;
+  const probe={
+    nom:$('#fNom').value,
+    pays:$('#fPays').value,
+    annee:$('#fAnnee').value,
+    var:$('#fVar').value
+  };
+  const sig=coinSig(probe);
+  if(!sig){box.hidden=true;return}
+  const matches=coins.filter(c=>c.id!==cur.id&&coinSig(c)===sig);
+  if(!matches.length){box.hidden=true;return}
+  const totalQte=matches.reduce((s,c)=>s+(+c.qte||1),0);
+  const first=matches[0];
+  box.hidden=false;
+  box.innerHTML=`<span>⚠️ <b>Doublon potentiel :</b> tu as déjà ${matches.length} fiche(s) identique(s) (${totalQte} ex. – état ${esc(first.etat||'TB')}).</span>
+  <button type="button" class="sm" id="btnIncExisting">+1 sur la fiche existante (et annuler)</button>`;
+  $('#btnIncExisting').onclick=async()=>{
+    first.qte=(+first.qte||1)+Math.max(1,parseInt($('#fQte').value)||1);
+    if(cur.photos&&cur.photos.length){
+      first.photos=[...(first.photos||[]),...cur.photos];
+    }
+    await DB.put(first);
+    $('#dEdit').close();
+    await reload();
+  };
+}
+async function mergeDuplicates(c){
+  const sig=coinSig(c);
+  const group=coins.filter(x=>coinSig(x)===sig);
+  if(group.length<2)return;
+  const totalQte=group.reduce((s,x)=>s+(+x.qte||1),0);
+  if(!confirm(`Fusionner les ${group.length} fiches identiques de « ${c.nom} » en une seule fiche (quantité totale : ${totalQte}, photos regroupées) ?`))return;
+  const master=group[0];
+  master.qte=totalQte;
+  const allPhotos=[];
+  const seen=new Set();
+  for(const item of group){
+    for(const p of (item.photos||[])){
+      if(!seen.has(p)){seen.add(p);allPhotos.push(p);}
+    }
+    if(!master.rem&&item.rem)master.rem=item.rem;
+    if(!master.ref&&item.ref)master.ref=item.ref;
+    if(!master.prix&&item.prix)master.prix=item.prix;
+  }
+  master.photos=allPhotos;
+  await DB.put(master);
+  for(const item of group.slice(1)){
+    await DB.del(item.id);
+  }
+  await reload();
+}
+
+/* ============ Liste ============ */
+function badge(c){return STATUTS[c.statut]||''}
+function render(){
+  const q=$('#q').value.toLowerCase().trim(),fs=$('#fStatut').value,onlyDup=$('#fDup').checked;
+  const dupGroups=getDupGroups();
+  let dupCardCount=0;
+  for(const grp of dupGroups.values()){if(grp.length>1)dupCardCount+=grp.length}
+  $('#dupCount').textContent=dupCardCount;
+  const l=coins.filter(c=>{
+    const sig=coinSig(c);
+    const isDup=sig&&dupGroups.get(sig)?.length>1;
+    if(onlyDup&&!isDup)return false;
+    return (!fs||c.statut===fs)&&(!q||[c.nom,c.pays,c.annee,c.var,c.ref,c.plat].join(' ').toLowerCase().includes(q));
+  });
+  let n=0,mv=0,mn=0,mx=0,pr=0,sold=0;
+  coins.filter(c=>c.statut!=='vendu').forEach(c=>{const e=rangeOf(c),k=+c.qte||1;n+=k;mv+=e.metal*k;mn+=e.min*k;mx+=e.max*k;pr+=priceOf(c)*k});
+  coins.filter(c=>c.statut==='vendu').forEach(c=>sold+=priceOf(c)*(+c.qte||1));
+  $('#stats').innerHTML=`<div class="stat"><b>${n}</b><span>pièces à vendre / en stock</span></div>
+   <div class="stat"><b>${eur(mv)}</b><span>valeur du métal fin</span></div>
+   <div class="stat"><b>${eur(mn)} – ${eur(mx)}</b><span>fourchette estimée du lot</span></div>
+   <div class="stat"><b>${eur(pr)}</b><span>total des prix affichés</span></div>
+   <div class="stat"><b>${eur(sold)}</b><span>déjà vendu</span></div>`;
+  if(!l.length){$('#list').innerHTML=`<div class="empty">${coins.length?'Aucune pièce ne correspond aux filtres.':'Aucune pièce pour l\'instant.<br>Clique sur « Ajouter une pièce » pour commencer ton inventaire.'}</div>`;return}
+  $('#list').innerHTML='<div class="grid">'+l.map(c=>{
+    const e=estimate(c);
+    const sig=coinSig(c);
+    const grp=sig?dupGroups.get(sig):null;
+    const dupLen=grp&&grp.length>1?grp.length:0;
+    return`<div class="card" data-id="${c.id}">
+   <div class="thumb">${c.photos&&c.photos[0]?`<img src="${c.photos[0]}" alt="">`:'🪙 pas de photo'}<span class="badge">${esc(badge(c))}</span>${c.photos&&c.photos.length>1?`<span class="nph">📷 ${c.photos.length}</span>`:''}${dupLen?`<span class="dup-badge">⚠️ Doublon (×${dupLen} fiches)</span>`:''}</div>
+   <div class="cb"><div class="t">${esc(c.nom)}</div>
+   <div class="m">${esc([c.pays,c.annee,c.etat,(+c.qte>1?'× '+c.qte:'')].filter(Boolean).join(' · '))}</div>
+   <div class="m">${mktLine(c,e)}</div>
+   <div class="price">Prix annonce : ${eur(priceOf(c))}<span class="tag">${priceSource(c)}</span></div></div>
+   <div class="acts"><button class="sm pri" data-a="ad">Annonce</button><button class="sm" data-a="val">Valeur</button><button class="sm" data-a="edit">Modifier</button><button class="sm ok" data-a="sold" style="color:var(--ok)">💰 Vendre</button>${dupLen?`<button class="sm" data-a="merge" title="Regrouper ces ${dupLen} fiches identiques">Fusionner</button>`:''}<button class="sm" data-a="dup">Dupliquer</button><button class="sm danger" data-a="del">Suppr.</button></div></div>`}).join('')+'</div>';
+}
+async function reload(){coins=(await DB.all()).sort((a,b)=>(b.cree||0)-(a.cree||0));render()}
+
+/* ============ Formulaire ============ */
+function fillSelects(){
+  $('#fType').innerHTML=CAT.map(t=>`<option value="${t.id}">${esc(t.nom)}${t.pays?' – '+esc(t.pays):''}</option>`).join('');
+  $('#fEtat').innerHTML=GORDER.map(g=>`<option value="${g}">${g} – ${GRADES[g]}</option>`).join('');
+  $('#fCat').innerHTML=Object.entries(CATS).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('');
+  $('#fStatut2').innerHTML=Object.entries(STATUTS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+  $('#fStatut').innerHTML='<option value="">Tous les statuts</option>'+Object.entries(STATUTS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+}
+function applyType(t,force){
+  if(!t)return;
+  if(force||!$('#fNom').value)$('#fNom').value=t.id==='custom'?'':t.nom;
+  if(t.pays&&(force||!$('#fPays').value))$('#fPays').value=t.pays;
+  if(t.id!=='custom'){$('#fMetal').value=t.metal;$('#fPoids').value=t.poids??'';$('#fTitre').value=t.titre??'';$('#fDiam').value=t.diam??'';$('#fCat').value=t.cat}
+}
+function openEdit(c){
+  cur=c?JSON.parse(JSON.stringify(c)):{id:uid(),cree:Date.now(),photos:[],statut:'a_vendre',etat:'TB',qte:1,type:'fr-20f-or'};
+  $('#eTitle').textContent=c?'Modifier la pièce':'Nouvelle pièce';
+  $('#fType').value=cur.type||'custom';
+  const set=(id,v)=>$(id).value=v??'';
+  set('#fNom',cur.nom);set('#fPays',cur.pays);set('#fAnnee',cur.annee);set('#fQte',cur.qte||1);set('#fEtat',cur.etat||'TB');
+  set('#fVar',cur.var);set('#fRef',cur.ref);set('#fRem',cur.rem);set('#fStatut2',cur.statut||'a_vendre');set('#fPlat',cur.plat);set('#fPrix',cur.prix);
+  if(c){set('#fMetal',cur.metal);set('#fPoids',cur.poids);set('#fTitre',cur.titre);set('#fDiam',cur.diam);set('#fCat',cur.cat)}
+  else applyType(CAT.find(t=>t.id===cur.type),true);
+  renderPhotos();$('#aiOut').hidden=true;checkLiveDuplicate();$('#fPrix').placeholder='Auto : '+eur(priceOf({...cur,prix:null}));$('#dEdit').showModal();
+}
+async function saveEdit(){
+  const nom=$('#fNom').value.trim();if(!nom){alert('Indique une désignation.');$('#fNom').focus();return}
+  const num=id=>{const v=parseFloat($(id).value);return isNaN(v)?null:v};
+  Object.assign(cur,{type:$('#fType').value,nom,pays:$('#fPays').value.trim(),annee:$('#fAnnee').value.trim(),qte:Math.max(1,parseInt($('#fQte').value)||1),etat:$('#fEtat').value,var:$('#fVar').value.trim(),ref:$('#fRef').value.trim(),rem:$('#fRem').value.trim(),
+    metal:$('#fMetal').value,poids:num('#fPoids'),titre:num('#fTitre'),diam:num('#fDiam'),cat:$('#fCat').value,statut:$('#fStatut2').value,plat:$('#fPlat').value.trim(),prix:num('#fPrix')});
+  await DB.put(cur);$('#dEdit').close();await reload();
+}
+
+/* ============ Génération d'annonce ============ */
+function buildTitle(c,p){
+  const parts=[c.nom.replace(/\s*\(.*?\)\s*/g,' ').trim(),c.annee,c.pays&&!c.nom.toLowerCase().includes(c.pays.toLowerCase())?c.pays:'',c.etat,metalShort(c)].filter(Boolean);
+  let t=parts.join(' – ');
+  if(p==='ebay'||p==='delcampe')t=t.replace(/ – /g,' ')+' pièce monnaie ancienne';
+  return t.length>80&&p==='ebay'?t.slice(0,80).replace(/\s+\S*$/,''):t;
+}
+function buildDesc(c,p,short,o,prix){
+  const liv=reglages.liv?.trim(),sig=reglages.sig?.trim();
+  const e=GRADES[c.etat]?`${c.etat} (${GRADES[c.etat]})`:'';
+  const car=[
+    ['Désignation',c.nom],['Pays',c.pays],['Année',c.annee],['Métal',metalLabel(c)],
+    c.diam?['Diamètre',nf(c.diam,1)+' mm']:null,
+    e?['État',e+(o.clean?' – non nettoyée':'')]:null,
+    c.var?['Atelier / variante',c.var]:null,
+    c.ref?['Référence',c.ref]:null,
+    +c.qte>1?['Quantité disponible',c.qte]:null
+  ].filter(Boolean);
+  const list=car.map(([k,v])=>`• ${k} : ${v}`).join('\n');
+  const rem=c.rem?`\nRemarques : ${c.rem}.`:'';
+  const auth=o.auth?'\nPièce authentique, garantie.':'';
+  const photos='Les photos font partie de la description : la pièce est vendue telle que sur les photos.';
+  const offer=o.offer?'Offres raisonnables étudiées.':'';
+  const lot=o.lot?(+c.qte>1?'Remise possible si vous prenez plusieurs exemplaires.':'Remise possible si vous prenez plusieurs pièces de ma collection.'):'';
+  const pr=`Prix : ${eur(prix)}${+c.qte>1?' la pièce':''}.`;
+  const tail=[offer,lot].filter(Boolean).join(' ');
+  const intro={
+    lbc:`Bonjour,\nJe vends cette ancienne pièce de monnaie issue de ma collection : ${c.nom}${c.annee?' de '+c.annee:''}.`,
+    ebay:`Belle pièce de monnaie ancienne à saisir : ${c.nom}${c.annee?', millésime '+c.annee:''}.`,
+    delcampe:`Collectionneurs, je propose ${c.nom}${c.annee?' de '+c.annee:''}${c.pays?' ('+c.pays+')':''}, tirée de ma collection personnelle.`,
+    fb:`À vendre : ${c.nom}${c.annee?' '+c.annee:''}.`,
+    gen:`À vendre : ${c.nom}${c.annee?' ('+c.annee+')':''}.`
+  }[p];
+  if(short)return [intro,'',list,rem.trim(),auth.trim(),'',pr,tail,liv,sig].filter((x,i,a)=>x!==undefined&&x!==null&&!(x===''&&a[i-1]==='')).join('\n').replace(/\n{3,}/g,'\n\n').trim();
+  const ebayExtra=p==='ebay'?'\nN\'hésitez pas à consulter mes autres objets : possibilité de regrouper les frais de port.':'';
+  const delExtra=p==='delcampe'?'\nExpédition soignée, pièce protégée dans un étui ou une capsule.':'';
+  return [intro,'','Caractéristiques :',list,rem,auth,'',photos,'',pr,tail,'',liv?'Livraison : '+liv:'',ebayExtra,delExtra,sig].join('\n').replace(/\n{3,}/g,'\n\n').trim();
+}
+function opts(){return{clean:$('#oClean').checked,auth:$('#oAuth').checked,offer:$('#oOffer').checked,lot:$('#oLot').checked}}
+function genAd(){
+  if(!adCoin)return;
+  const p=$('#aPlat').value,prix=parseFloat($('#aPrix').value)||priceOf(adCoin);
+  $('#aT').value=buildTitle(adCoin,p);
+  $('#aD').value=buildDesc(adCoin,p,$('#aLen').value==='short',opts(),prix);
+  $('#tLen').textContent=`(${$('#aT').value.length} caractères${p==='ebay'?' – max. 80 sur eBay':''})`;
+}
+function copy(text){
+  return (navigator.clipboard?.writeText(text)||Promise.reject()).catch(()=>{const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove()}).then(()=>{$('#cpOk').textContent='✔ Copié';setTimeout(()=>$('#cpOk').textContent='',1800)});
+}
+
+/* ============ Valeurs ============ */
+function renderVal(){
+  const c=adCoin,e=estimate(c),q=encodeURIComponent(searchQuery(c)),k=+c.qte||1;
+  const gi=Math.max(0,GORDER.indexOf(c.etat||'TB'));
+  const rows=GORDER.map((g,i)=>{
+    const cc={...c,etat:g},x=estimate(cc);
+    return`<tr${i===gi?' style="font-weight:600"':''}><td>${g} – ${GRADES[g]}</td><td>${eur(x.min)}</td><td>${eur(x.max)}</td></tr>`}).join('');
+  const f=fineW(c);
+  $('#tabVal').innerHTML=`
+   ${marketBlock(c)}<h2>Estimation par formule (cours du métal × prime)</h2>
+   ${f?`<p>Métal fin : <b>${nf(f,2)} g</b> × ${nf(c.metal==='or'?spots.or:spots.argent,2)} €/g = <b>${eur(metalVal(c))}</b> de valeur matière par pièce.</p>`:'<p>Pièce de métal commun : la valeur dépend surtout de la date et de l\'état.</p>'}
+   <p>Estimation par formule (état ${esc(c.etat)}) : <b>${eur(e.min)} – ${eur(e.max)}</b> par pièce${k>1?` · ${eur(e.min*k)} – ${eur(e.max*k)} pour ${k} pièces`:''}. Prix suggéré par la formule : <b>${eur(rnd(e.mid))}</b>.</p>
+   <table><tr><th>État</th><th>Min.</th><th>Max.</th></tr>${rows}</table>
+   <p class="warn">Fourchette indicative calculée à partir du cours du métal et d'une prime moyenne par type de pièce. Les millésimes rares, variantes ou pièces certifiées peuvent valoir bien plus ; à l'inverse, un acheteur professionnel paiera moins que le prix entre particuliers. Vérifie toujours les ventes réelles ci-dessous.</p>
+   <h2 style="margin-top:14px">Voir les prix réellement pratiqués</h2>
+   <div class="links">
+    <a target="_blank" rel="noopener" href="https://www.ebay.fr/sch/i.html?_nkw=${q}&LH_Sold=1&LH_Complete=1">eBay – ventes terminées</a>
+    <a target="_blank" rel="noopener" href="https://www.ebay.fr/sch/i.html?_nkw=${q}">eBay – annonces en cours</a>
+    <a target="_blank" rel="noopener" href="https://www.leboncoin.fr/recherche?text=${q}">Leboncoin</a>
+    <a target="_blank" rel="noopener" href="https://www.delcampe.net/fr/collections/search?term=${q}">Delcampe</a>
+    <a target="_blank" rel="noopener" href="https://fr.numista.com/catalogue/index.php?r=${q}">Numista (catalogue)</a>
+    <a target="_blank" rel="noopener" href="https://www.google.com/search?q=${encodeURIComponent(searchQuery(c)+' valeur cote prix')}">Recherche web</a>
+   </div>
+   <p class="note">Astuce : sur eBay, « ventes terminées » donne les prix auxquels les pièces se sont vraiment vendues — prends la médiane de 5 à 10 ventes comparables (même année, même état).</p>`;
+}
+function renderPhTab(){
+  const c=adCoin;
+  $('#tabPh').innerHTML=(c.photos&&c.photos.length?`<p class="note">Télécharge les photos pour les envoyer sur les plateformes.</p><div class="photos">${c.photos.map((p,i)=>`<div><img src="${p}" style="width:150px;height:150px;object-fit:cover;border-radius:8px;display:block"><button class="sm" data-dlp="${i}" style="margin-top:4px">Télécharger</button></div>`).join('')}</div><p><button id="dlAll">Tout télécharger</button></p>`:'<p class="empty">Aucune photo. Ajoute-en via « Modifier ».</p>');
+}
+function openAd(c,tab){
+  adCoin=c;$('#aTitle').textContent=c.nom+(c.annee?' '+c.annee:'');
+  const lastP=ls.get('lastPlat','lbc');$('#aPlat').value=lastP;$('#aPrix').value=priceOf(c);
+  ['oClean','oAuth','oOffer','oLot'].forEach(id=>$('#'+id).checked=false);
+  genAd();renderVal();renderPhTab();showTab(tab||'ad');$('#dAd').showModal();
+}
+function showTab(t){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  $('#tabAd').hidden=t!=='ad';$('#tabVal').hidden=t!=='val';$('#tabPh').hidden=t!=='ph';
+}
+
+/* ============ Export / import ============ */
+function exportCsv(){
+  const h=['Désignation','Pays','Année','Quantité','État','Métal','Poids g','Titre ‰','Valeur métal €','Estimation min €','Estimation max €','Prix annonce €','Statut','Plateforme','Remarques'];
+  const rows=coins.map(c=>{const e=estimate(c);return[c.nom,c.pays,c.annee,c.qte,c.etat,c.metal,c.poids,c.titre,e.metal.toFixed(2),e.min.toFixed(2),e.max.toFixed(2),priceOf(c),STATUTS[c.statut],c.plat,c.rem]});
+  const csv='\ufeff'+[h,...rows].map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\n');
+  dl(URL.createObjectURL(new Blob([csv],{type:'text/csv'})),'pieces.csv');
+}
+function exportJson(){dl(URL.createObjectURL(new Blob([JSON.stringify({version:1,spots,coins})],{type:'application/json'})),'sauvegarde-pieces-'+new Date().toISOString().slice(0,10)+'.json')}
+async function importJson(f){
+  try{const d=JSON.parse(await f.text());if(!Array.isArray(d.coins))throw 0;
+    for(const c of d.coins)await DB.put(c);
+    if(d.spots){spots=d.spots;ls.set('spots',spots);$('#spotOr').value=spots.or;$('#spotAg').value=spots.argent}
+    await reload();alert(d.coins.length+' pièce(s) restaurée(s).')}catch(e){alert('Fichier de sauvegarde invalide.')}
+}
+
+/* ============ Reconnaissance par IA (Google Gemini – Tier Gratuit) ============ */
+function aiPrompt(){
+  const types=CAT.filter(t=>t.id!=='custom'&&t.id!=='base').map(t=>t.id+' = '+t.nom).join('\n');
+  const cats=Object.entries(CATS).map(([k,v])=>k+' = '+v).join('\n');
+  return `Tu es un numismate expert des monnaies du monde (notamment européennes, françaises, d'Europe de l'Est et américaines) du XVIIIe au XXIe siècle. Les images montrent une même pièce (avers, revers, éventuellement tranche). Identifie-la et réponds UNIQUEMENT par un objet JSON valide, sans texte autour ni balises markdown.
+
+Règles :
+- N'invente rien. Si une information n'est pas lisible ou pas certaine, mets null. Ne devine pas l'année si elle n'est pas lisible.
+- Le poids, le titre et le diamètre ne doivent venir que des spécifications officielles connues de ce type de pièce, sinon null. Titre en millièmes (ex. 900 pour l'or 21,6 carats).
+- "nom" est une désignation claire en français (valeur faciale, souverain ou type, ex. « 20 francs or Coq de Chaplain », « 1 thaler Marie-Thérèse »). "pays" en français, avec l'État de l'époque si différent d'aujourd'hui (ex. Empire russe, Autriche-Hongrie, Prusse).
+- "etat" : B, TB, TTB, SUP, SPL ou FDC, évalué d'après la photo (sois prudent).
+- "metal" : or, argent ou base (cuivre, bronze, laiton, nickel, billon, zinc, aluminium…).
+- "type_id" : un des identifiants ci-dessous si la pièce correspond exactement, sinon null.
+- "categorie_estimation" : une des clés ci-dessous.
+- "remarques" : défauts visibles (rayures, patine, coups, nettoyage…).
+- "confiance" : nombre de 0 à 1. "incertitudes" : liste de courtes phrases (ce qui reste à vérifier).
+
+Format exact :
+{"type_id":null,"nom":"","pays":"","annee":"","metal":"","poids_g":null,"titre_permille":null,"diametre_mm":null,"etat":"","variante":null,"reference":null,"categorie_estimation":"","remarques":null,"confiance":0,"incertitudes":[]}
+
+Identifiants de types connus :
+${types}
+
+Clés de catégorie d'estimation :
+${cats}`;
+}
+async function analyzeCoin(){
+  const key=ls.get('geminiKey','')||ls.get('apiKey','');
+  if(!key){alert('Ajoute d\'abord ta clé API gratuite Google Gemini dans « Réglages des annonces » (lien direct disponible dans les réglages).');return}
+  if(!cur.photos.length){alert('Ajoute d\'abord au moins une photo.');return}
+  const model=ls.get('geminiModel','gemini-3.8-flash');
+  const out=$('#aiOut');out.hidden=false;out.textContent='Analyse de la pièce en cours ('+model+')…';$('#btnAI').disabled=true;
+  try{
+    const parts=cur.photos.slice(0,4).map(p=>({inline_data:{mime_type:'image/jpeg',data:p.split(',')[1]}}));
+    parts.push({text:aiPrompt()});
+    let r;
+    const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key);
+    try{
+      r=await fetch(url,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          contents:[{parts}],
+          generationConfig:{temperature:0.1,maxOutputTokens:1500,responseMimeType:'application/json'}
+        })
+      });
+    }catch(_){throw new Error('impossible de joindre Google Gemini (vérifie ta connexion internet ou un éventuel bloqueur de requêtes).')}
+    const j=await r.json();
+    if(!r.ok){
+      const msg=j.error&&j.error.message?j.error.message:('erreur '+r.status);
+      if(r.status===429)throw new Error('quota gratuit temporairement atteint ('+msg+'). Réessaie dans 1 minute ou choisis Gemini 3.5 Flash-Lite dans les réglages.');
+      throw new Error(msg);
+    }
+    const txt=(j.candidates?.[0]?.content?.parts||[]).map(b=>b.text||'').join('');
+    const m=txt.match(/\{[\s\S]*\}/);if(!m)throw new Error('réponse illisible.');
+    applyAI(JSON.parse(m[0]));
+  }catch(e){out.textContent='Échec de la reconnaissance : '+e.message}
+  $('#btnAI').disabled=false;
+}
+function applyAI(d){
+  const set=(id,v)=>{if(v!==null&&v!==undefined&&v!=='')$(id).value=v};
+  const t=CAT.find(x=>x.id===d.type_id);
+  $('#fType').value=t?t.id:'custom';
+  set('#fNom',d.nom);set('#fPays',d.pays);set('#fAnnee',d.annee);
+  if(['or','argent','base'].includes(d.metal))$('#fMetal').value=d.metal;
+  set('#fPoids',d.poids_g);set('#fTitre',d.titre_permille);set('#fDiam',d.diametre_mm);
+  if(GORDER.includes(d.etat))$('#fEtat').value=d.etat;
+  set('#fVar',d.variante);set('#fRef',d.reference);
+  if(CATS[d.categorie_estimation])$('#fCat').value=d.categorie_estimation;
+  if(d.remarques&&!$('#fRem').value)$('#fRem').value=d.remarques;
+  const conf=typeof d.confiance==='number'?Math.round(d.confiance*100)+' %':'inconnue';
+  const inc=Array.isArray(d.incertitudes)&&d.incertitudes.length?'\nÀ vérifier : '+d.incertitudes.join(' · '):'';
+  checkLiveDuplicate();
+  $('#aiOut').textContent='✔ Champs pré-remplis (confiance '+conf+'). Relis-les avant d\'enregistrer : une reconnaissance par photo peut se tromper, surtout sur les variantes et le titre du métal.'+inc;
+}
+
+/* ============ Prix du marché (Gemini + recherche Google) ============ */
+const MKT_DAYS_STALE=30;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let refAbort=false,refRunning=false;
+
+function posPct(){const v=parseFloat(ls.get('pos',0));return isNaN(v)?0:v}
+function marketPrice(c){
+  if(!c.mkt||!c.mkt.median)return null;
+  let p=c.mkt.median*(1+posPct()/100);
+  if(c.metal!=='base'){const mv=metalVal(c);if(mv&&p<mv)p=mv}
+  return rnd(p);
+}
+function priceOf(c){
+  if(c.prix>0)return +c.prix;
+  const m=marketPrice(c);
+  return m!==null?m:rnd(estimate(c).mid);
+}
+function priceSource(c){return c.prix>0?'manuel':(marketPrice(c)!==null?'marché':'formule')}
+function rangeOf(c){
+  const e=estimate(c);
+  if(c.mkt&&c.mkt.median)return{min:c.mkt.q1,max:c.mkt.q3,metal:e.metal,market:true};
+  return{min:e.min,max:e.max,metal:e.metal,market:false};
+}
+function fmtDate(t){return new Date(t).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})}
+function mktLine(c,e){
+  if(c.mkt&&c.mkt.median){
+    const old=Date.now()-c.mkt.date>MKT_DAYS_STALE*864e5;
+    return 'Marché ('+fmtDate(c.mkt.date)+(old?' – ancien':'')+') : '+eur(c.mkt.q1)+' – '+eur(c.mkt.q3)+' · méd. '+eur(c.mkt.median)+' · '+c.mkt.n+' annonces';
+  }
+  return 'Estimation formule : '+eur(e.min)+' – '+eur(e.max)+(e.metal?' (métal '+eur(e.metal)+')':'');
+}
+function mktKey(c){return [normStr(c.nom),normStr(c.pays),normStr(c.annee),normStr(c.var),c.etat].join('|')}
+
+// @@pure-start
+function quant(a,p){const i=(a.length-1)*p,lo=Math.floor(i),hi=Math.ceil(i);return a[lo]+(a[hi]-a[lo])*(i-lo)}
+function statsFrom(comps){
+  let list=(comps||[]).map(x=>({plateforme:x.plateforme,titre:x.titre,type:x.type==='vendu'?'vendu':'demande',prix:parseFloat(x.prix_eur)}))
+    .filter(x=>isFinite(x.prix)&&x.prix>0)
+    .map(x=>({...x,adj:x.type==='vendu'?x.prix:x.prix*0.9}));
+  if(list.length>=5){
+    const s=list.map(x=>x.adj).sort((a,b)=>a-b),m=quant(s,.5);
+    list=list.filter(x=>x.adj<=m*3&&x.adj>=m/3);
+  }
+  if(!list.length)return null;
+  const s=list.map(x=>x.adj).sort((a,b)=>a-b);
+  return{n:list.length,nSold:list.filter(x=>x.type==='vendu').length,min:s[0],max:s[s.length-1],q1:quant(s,.25),median:quant(s,.5),q3:quant(s,.75),
+    comparables:list.map(x=>({plateforme:x.plateforme,titre:x.titre,type:x.type,prix:x.prix}))};
+}
+// @@pure-end
+
+function mktPrompt(c){
+  const f=fineW(c);
+  const metalTxt=c.metal+(c.poids?', '+c.poids+' g':'')+(c.titre?', titre '+c.titre+' ‰':'');
+  const repere=f?'\nValeur du métal fin, à titre de simple repère : environ '+eur(metalVal(c))+' par pièce (ne t\'en sers pas pour inventer des prix).':'';
+  return `Tu es un expert en numismatique et en prix de revente entre particuliers. Recherche sur le web (eBay.fr et eBay.com, de préférence les ventes terminées ; Leboncoin, Delcampe, Vinted, Numista, maisons de ventes et sites de numismates) les annonces et ventes récentes de pièces comparables à celle-ci :
+
+Désignation : ${c.nom}
+Pays : ${c.pays||'non précisé'}
+Année : ${c.annee||'non précisée'}
+Variante / atelier : ${c.var||'non précisé'}
+Référence catalogue : ${c.ref||'non précisée'}
+Métal : ${metalTxt}
+État : ${c.etat} (${GRADES[c.etat]||''})
+Remarques : ${c.rem||'aucune'}${repere}
+
+Consignes :
+- Ne retiens que des annonces ou ventes réellement trouvées dans tes recherches, pour la MÊME pièce (même type, même année, état proche). N'invente aucun prix.
+- Convertis tout en euros et ramène chaque prix à UNE seule pièce (si c'est un lot homogène, divise ; ignore les lots hétérogènes). Frais de port exclus.
+- Écarte les copies, reproductions, bijoux, montures, et les pièces certifiées/gradées (PCGS, NGC…) sauf si leur état est équivalent au nôtre.
+- Pour chaque annonce, indique si c'est un prix de vente réel ("vendu") ou un prix demandé ("demande").
+- Vise 5 à 12 comparables si possible. S'il y en a moins de 3, renvoie ce que tu as sans extrapoler.
+
+Réponds UNIQUEMENT par un JSON valide, sans texte autour ni balises markdown :
+{"comparables":[{"plateforme":"","titre":"","prix_eur":0,"type":"vendu","etat":"","annee":""}],"commentaire":""}`;
+}
+
+async function geminiSearch(prompt){
+  const key=ls.get('geminiKey','')||ls.get('apiKey','');
+  if(!key)throw new Error('clé API Gemini manquante (Réglages des annonces).');
+  const model=ls.get('geminiModel','gemini-3.8-flash');
+  const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key);
+  let r;
+  try{
+    r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],tools:[{google_search:{}}],generationConfig:{temperature:0.1,maxOutputTokens:8000}})});
+  }catch(_){throw new Error('impossible de joindre Google Gemini (connexion ou bloqueur de requêtes).')}
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok){
+    let msg=j.error&&j.error.message?j.error.message:('erreur '+r.status);
+    if(r.status===400||r.status===403)msg+=' — la recherche web est peut-être indisponible avec ce modèle ou cette clé ; essaie un autre modèle dans les réglages.';
+    if(r.status===429)msg='quota gratuit atteint ('+msg+')';
+    const e=new Error(msg);e.status=r.status;throw e;
+  }
+  const cand=j.candidates&&j.candidates[0];
+  const txt=((cand&&cand.content&&cand.content.parts)||[]).map(p=>p.text||'').join('');
+  const chunks=(cand&&cand.groundingMetadata&&cand.groundingMetadata.groundingChunks)||[];
+  const seen=new Set(),sources=[];
+  for(const ch of chunks){
+    const w=ch.web;
+    if(w&&w.uri){const k=w.title||w.uri;if(!seen.has(k)){seen.add(k);sources.push({title:w.title||'source',url:w.uri})}}
+  }
+  return{txt,sources:sources.slice(0,8)};
+}
+
+async function estimateMarket(c){
+  const {txt,sources}=await geminiSearch(mktPrompt(c));
+  const m=txt.match(/\{[\s\S]*\}/);
+  let d=null;try{d=m?JSON.parse(m[0]):null}catch(_){}
+  if(!d)return{ok:false,note:'réponse illisible, réessaie.',sources};
+  const st=statsFrom(d.comparables);
+  if(!st||st.n<3)return{ok:false,note:'moins de 3 annonces comparables trouvées'+(d.commentaire?' ('+d.commentaire+')':'')+' : le prix reste celui de la formule.',sources};
+  const note=((d.commentaire||'')+(st.n-st.nSold>0?' Les prix demandés sont comptés −10 % pour approcher le prix réellement obtenu.':'')).trim();
+  return{ok:true,mkt:{...st,date:Date.now(),sources,note}};
+}
+function applyMarket(c,res){
+  if(res.ok){c.mkt=res.mkt;delete c.mktTry}
+  else c.mktTry={date:Date.now(),note:res.note};
+}
+
+function marketBlock(c){
+  const m=c.mkt;
+  let h='<div class="mkt"><h2>Prix constatés sur les plateformes</h2>';
+  if(m&&m.median){
+    const old=Date.now()-m.date>MKT_DAYS_STALE*864e5;
+    const mv=metalVal(c);
+    h+='<p>Basé sur <b>'+m.n+'</b> annonce(s) comparable(s) dont '+m.nSold+' vente(s) terminée(s), relevées le '+new Date(m.date).toLocaleDateString('fr-FR')+(old?' <span class="warn">– données anciennes, relance l\'estimation</span>':'')+'.</p>';
+    h+='<p>Fourchette : <b>'+eur(m.q1)+' – '+eur(m.q3)+'</b> · médiane <b>'+eur(m.median)+'</b> (extrêmes '+eur(m.min)+' – '+eur(m.max)+'). Prix d\'annonce retenu (positionnement '+(posPct()>0?'+':'')+posPct()+' %) : <b>'+eur(marketPrice(c))+'</b>'+(c.prix>0?' — mais un prix manuel de '+eur(c.prix)+' est fixé sur cette fiche':'')+'.</p>';
+    if(mv&&m.median<mv)h+='<p class="warn">La médiane est inférieure à la valeur du métal ('+eur(mv)+') : le prix est relevé à la valeur matière.</p>';
+    if(m.note)h+='<p class="note">'+esc(m.note)+'</p>';
+    if(m.comparables&&m.comparables.length){
+      h+='<table><tr><th>Plateforme</th><th>Annonce</th><th>Type</th><th>Prix / pièce</th></tr>'+m.comparables.map(x=>'<tr><td>'+esc(x.plateforme||'')+'</td><td>'+esc(x.titre||'')+'</td><td>'+(x.type==='vendu'?'vendu':'demandé')+'</td><td>'+eur(x.prix)+'</td></tr>').join('')+'</table>';
+    }
+    if(m.sources&&m.sources.length)h+='<p class="links">Pages consultées : '+m.sources.map(s=>'<a target="_blank" rel="noopener" href="'+esc(s.url)+'">'+esc(s.title||'source')+'</a>').join('')+'</p>';
+  }else if(c.mktTry){
+    h+='<p class="warn">Dernière tentative le '+new Date(c.mktTry.date).toLocaleDateString('fr-FR')+' : '+esc(c.mktTry.note)+'</p>';
+  }else{
+    h+='<p class="note">Pas encore d\'estimation basée sur les annonces : le prix vient de la formule ci-dessous.</p>';
+  }
+  h+='<p><button class="pri" id="btnMkt">🌐 Estimer sur le marché maintenant</button> <span id="mktStatus" class="note"></span></p></div>';
+  return h;
+}
+
+/* ---- Actualisation globale ---- */
+function openRefresh(){
+  $('#rPos').value=String(posPct());
+  $('#rLog').textContent='';$('#rBar').style.width='0%';
+  $('#rGo').disabled=false;$('#rStop').hidden=true;
+  $('#dRef').showModal();
+}
+async function runRefresh(){
+  if(refRunning)return;
+  const scopeV=$('#rV').checked,scopeA=$('#rA').checked,force=$('#rForce').checked,days=parseInt($('#rDays').value)||0;
+  const list=coins.filter(c=>(scopeV&&c.statut==='a_vendre')||(scopeA&&c.statut==='annonce'));
+  const log=t=>{const o=$('#rLog');o.textContent+=t+'\n';o.scrollTop=o.scrollHeight};
+  if(!list.length){log('Aucune pièce dans le périmètre choisi.');return}
+  if(!(ls.get('geminiKey','')||ls.get('apiKey',''))){log('Ajoute d\'abord ta clé API Gemini dans « Réglages des annonces ».');return}
+  const groups=new Map();
+  for(const c of list){const k=mktKey(c);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(c)}
+  const todo=[...groups.values()].filter(g=>!(days>0&&g.every(c=>c.mkt&&Date.now()-c.mkt.date<days*864e5)));
+  $('#rLog').textContent='';
+  log(todo.length+' pièce(s) distincte(s) à estimer sur '+list.length+' fiche(s) ('+(groups.size-todo.length)+' déjà à jour).');
+  if(!todo.length){$('#rBar').style.width='100%';return}
+  refRunning=true;refAbort=false;$('#rGo').disabled=true;$('#rStop').hidden=false;$('#rBar').style.width='0%';
+  let ok=0,ko=0,done=0,manual=0,fatal=false;
+  for(const g of todo){
+    if(refAbort){log('Arrêté.');break}
+    const c0=g[0],label=c0.nom+(c0.annee?' '+c0.annee:'')+' ('+c0.etat+')';
+    let res=null;
+    for(let attempt=0;attempt<2&&!res;attempt++){
+      try{res=await estimateMarket(c0)}
+      catch(err){
+        if(err.status===429&&attempt===0){log('⏳ Quota atteint, pause de 30 s…');await sleep(30000);continue}
+        res={ok:false,err:true,status:err.status,note:err.message};
+      }
+    }
+    if(res.err){
+      ko++;log('✗ '+label+' : '+res.note);
+      if(res.status===400||res.status===403){log('Arrêt : vérifie ta clé API et le modèle choisi (la recherche web doit être disponible).');fatal=true;break}
+    }else{
+      for(const c of g){
+        applyMarket(c,JSON.parse(JSON.stringify(res)));
+        if(res.ok&&c.prix>0){if(force)c.prix=null;else manual++}
+        await DB.put(c);
+      }
+      if(res.ok){ok++;log('✓ '+label+' : médiane '+eur(res.mkt.median)+' ('+res.mkt.n+' annonces)')}
+      else{ko++;log('– '+label+' : '+res.note)}
+    }
+    done++;$('#rBar').style.width=Math.round(done/todo.length*100)+'%';
+    if(done<todo.length)await sleep(4000);
+  }
+  refRunning=false;$('#rGo').disabled=false;$('#rStop').hidden=true;
+  await reload();
+  if(!fatal)log('Terminé : '+ok+' estimée(s), '+ko+' sans résultat exploitable.'+(manual?' '+manual+' fiche(s) gardent le prix saisi à la main (coche « Écraser… » pour les mettre à jour).':''));
+}
+
+/* ============ Événements ============ */
+function wire(){
+  $('#btnAdd').onclick=()=>openEdit(null);
+  $('#btnAI').onclick=analyzeCoin;
+  $('#autoAI').checked=ls.get('autoAI',true);
+  $('#autoAI').onchange=()=>ls.set('autoAI',$('#autoAI').checked);
+  $('#q').oninput=render;$('#fStatut').onchange=render;$('#fDup').onchange=render;
+  ['#fNom','#fPays','#fAnnee','#fVar'].forEach(id=>$(id).addEventListener('input',checkLiveDuplicate));
+  $('#eClose').onclick=$('#eCancel').onclick=()=>$('#dEdit').close();
+  $('#eSave').onclick=saveEdit;
+  $('#fType').onchange=()=>{applyType(CAT.find(t=>t.id===$('#fType').value),true);checkLiveDuplicate()};
+  $('#btnPhoto').onclick=()=>$('#fPhotos').click();
+  $('#fPhotos').onchange=async e=>{
+    for(const f of e.target.files){try{cur.photos.push(await fileToDataURL(f))}catch(_){alert('Image non lisible : '+f.name)}}
+    e.target.value='';renderPhotos();if($('#autoAI').checked&&(ls.get('geminiKey','')||ls.get('apiKey','')))analyzeCoin();
+  };
+  $('#phList').onclick=e=>{
+    const d=e.target.closest('[data-del]'),m=e.target.closest('[data-main]');
+    if(d){cur.photos.splice(+d.dataset.del,1);renderPhotos()}
+    if(m){const i=+m.dataset.main;cur.photos.unshift(cur.photos.splice(i,1)[0]);renderPhotos()}
+  };
+  $('#list').onclick=async e=>{
+    const b=e.target.closest('[data-a]');if(!b)return;
+    const c=coins.find(x=>x.id===b.closest('.card').dataset.id);const a=b.dataset.a;
+    if(a==='edit')openEdit(c);
+    else if(a==='ad')openAd(c,'ad');
+    else if(a==='val')openAd(c,'val');
+    else if(a==='merge')await mergeDuplicates(c);
+    else if(a==='sold'){
+      const qteMax = +c.qte || 1;
+      const qVendu = prompt(`Combien d'exemplaire(s) de « ${c.nom} » ont été vendus ? (sur ${qteMax})`, qteMax);
+      if(qVendu!==null){
+        const qNum = parseInt(qVendu);
+        if(!isNaN(qNum) && qNum>0){
+          if(qNum >= qteMax){
+            c.statut = 'vendu';
+            await DB.put(c);
+          } else {
+            const n = JSON.parse(JSON.stringify(c));
+            n.id = uid();
+            n.cree = Date.now();
+            n.statut = 'vendu';
+            n.qte = qNum;
+            c.qte = qteMax - qNum;
+            await DB.put(c);
+            await DB.put(n);
+          }
+          await reload();
+        }
+      }
+    }
+    else if(a==='dup'){const n=JSON.parse(JSON.stringify(c));n.id=uid();n.cree=Date.now();n.statut='a_vendre';await DB.put(n);reload()}
+    else if(a==='del'&&confirm('Supprimer « '+c.nom+' » ?')){await DB.del(c.id);reload()}
+  };
+  $('#aClose').onclick=()=>$('#dAd').close();
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+  ['aPlat','aLen','aPrix','oClean','oAuth','oOffer','oLot'].forEach(id=>$('#'+id).addEventListener('input',()=>{if(id==='aPlat')ls.set('lastPlat',$('#aPlat').value);genAd()}));
+  $('#aT').oninput=()=>$('#tLen').textContent=`(${$('#aT').value.length} caractères)`;
+  $('#cpAll').onclick=()=>copy($('#aT').value+'\n\n'+$('#aD').value);
+  $('#cpDesc').onclick=()=>copy($('#aD').value);
+  document.querySelector('[data-copy="aT"]').onclick=()=>copy($('#aT').value);
+  $('#tabPh').onclick=e=>{
+    const b=e.target.closest('[data-dlp]');
+    if(b)dl(adCoin.photos[+b.dataset.dlp],(adCoin.nom+'-'+(+b.dataset.dlp+1)).replace(/[^\w\-]+/g,'_')+'.jpg');
+    if(e.target.id==='dlAll')adCoin.photos.forEach((p,i)=>setTimeout(()=>dl(p,(adCoin.nom+'-'+(i+1)).replace(/[^\w\-]+/g,'_')+'.jpg'),i*300));
+  };
+  $('#spotOr').oninput=()=>{spots.or=parseFloat($('#spotOr').value)||0;ls.set('spots',spots);render()};
+  $('#spotAg').oninput=()=>{spots.argent=parseFloat($('#spotAg').value)||0;ls.set('spots',spots);render()};
+  $('#btnSet').onclick=()=>{$('#sLiv').value=reglages.liv||'';$('#sSig').value=reglages.sig||'';$('#sKey').value=ls.get('geminiKey','')||ls.get('apiKey','');$('#sModel').value=ls.get('geminiModel','gemini-3.8-flash');$('#dSet').showModal()};
+  $('#sClose').onclick=()=>$('#dSet').close();
+  $('#sSave').onclick=()=>{reglages={liv:$('#sLiv').value,sig:$('#sSig').value};ls.set('reglages',reglages);ls.set('geminiKey',$('#sKey').value.trim());ls.set('geminiModel',$('#sModel').value);$('#dSet').close()};
+  $('#btnRefresh').onclick=openRefresh;
+  $('#rClose').onclick=()=>$('#dRef').close();
+  $('#dRef').addEventListener('close',()=>{refAbort=true});
+  $('#rGo').onclick=runRefresh;
+  $('#rStop').onclick=()=>{refAbort=true};
+  $('#rPos').onchange=()=>{ls.set('pos',parseFloat($('#rPos').value)||0);render()};
+  $('#tabVal').onclick=async e=>{
+    if(e.target.id!=='btnMkt')return;
+    const btn=e.target,st=$('#mktStatus'),id=adCoin.id;
+    btn.disabled=true;st.textContent='Recherche en cours sur le web (10 à 60 s)…';
+    try{
+      const res=await estimateMarket(adCoin);
+      const key=mktKey(adCoin);
+      for(const x of coins.filter(x=>mktKey(x)===key)){applyMarket(x,JSON.parse(JSON.stringify(res)));await DB.put(x)}
+      await reload();adCoin=coins.find(x=>x.id===id)||adCoin;
+      renderVal();$('#aPrix').value=priceOf(adCoin);genAd();
+    }catch(err){st.textContent='Échec : '+err.message;btn.disabled=false}
+  };
+  $('#btnCsv').onclick=exportCsv;$('#btnJson').onclick=exportJson;
+  $('#btnImp').onclick=()=>$('#impFile').click();
+  $('#impFile').onchange=e=>{if(e.target.files[0])importJson(e.target.files[0]);e.target.value=''};
+}
+
+(async function init(){
+  fillSelects();
+  $('#spotOr').value=spots.or;$('#spotAg').value=spots.argent;
+  wire();await DB.open();await reload();
+  if(!DB.db)console.warn('IndexedDB indisponible : les données ne seront pas conservées. Utilise la sauvegarde JSON.');
+})();
+</script>
+</body>
+</html>
